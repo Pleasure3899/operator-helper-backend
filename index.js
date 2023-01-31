@@ -15,10 +15,10 @@ const db = mysql.createConnection({
 
 //test
 app.get("/", (request, response) => {
-    response.json("hello");
+    response.json("test");
 });
 
-//get pbjects
+//get objects
 app.get("/objects", (request, response) => {
     const query = "SELECT * FROM objects"
     db.query(query, (error, data) => {
@@ -30,9 +30,22 @@ app.get("/objects", (request, response) => {
     })
 });
 
+//get object by id
+app.get("/objects/:id", (request, response) => {
+    const objectId = request.params.id;
+    const query = "SELECT * FROM objects WHERE id = ? "
+    db.query(query, [objectId], (error, data) => {
+        if (error) {
+            console.log(error);
+            return response.json(error);
+        }
+        return response.json(data);
+    })
+});
+
 //add object
 app.post("/objects", (request, response) => {
-    const q = "INSERT INTO objects(`id`, `latitude`, `longitude`) VALUES (?)";
+    const query = "INSERT INTO objects(`id`, `latitude`, `longitude`) VALUES (?)";
   
     const values = [
       request.body.id,
@@ -40,11 +53,39 @@ app.post("/objects", (request, response) => {
       request.body.longitude,
     ];
   
-    db.query(q, [values], (error, data) => {
+    db.query(query, [values], (error, data) => {
       if (error) return response.send(error);
       return response.json(data);
     });
   });
+
+  //delete object
+  app.delete("/objects/:id", (request, response) => {
+  const objectId = request.params.id;
+  const query = " DELETE FROM objects WHERE id = ? ";
+
+  db.query(query, [objectId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//update object
+app.put("/objects/:id", (request, response) => {
+  const objectId = request.params.id;
+  const query = "UPDATE objects SET `id` = ?, `latitude`= ?, `longitude`= ? WHERE `id` = ?";
+
+  const values = [
+    request.body.latitude,
+    request.body.longitude,
+  ];
+
+  db.query(query, [objectId, ...values, objectId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
 
 app.listen(8800, () => {
     console.log("Connected to backend")
