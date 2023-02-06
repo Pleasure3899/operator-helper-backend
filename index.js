@@ -116,15 +116,159 @@ app.get("/clients", (request, response) => {
 
 //get client by id
 app.get("/clients/:id", (request, response) => {
-  const objectId = request.params.id;
+  const clientId = request.params.id;
   const query = "SELECT * FROM clients WHERE id = ? "
-  db.query(query, [objectId], (error, data) => {
+  db.query(query, [clientId], (error, data) => {
     if (error) {
       console.log(error);
       return response.json(error);
     }
     return response.json(data);
   })
+});
+
+//get patrolmen
+app.get("/patrolmen", (request, response) => {
+  const query = "SELECT * FROM patrolmen"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get patrolman by id
+app.get("/patrolmen/:id", (request, response) => {
+  const patrolmenId = request.params.id;
+  const query = "SELECT * FROM patrolmen WHERE id = ? "
+  db.query(query, [patrolmenId], (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//add patrolman
+app.post("/patrolmen", (request, response) => {
+  const query = "INSERT INTO patrolmen(`id`, `full_name`, `age`, `experience`) VALUES (?)";
+
+  const values = [
+    request.body.id,
+    request.body.full_name,
+    request.body.age,
+    request.body.experience,
+  ];
+
+  db.query(query, [values], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//delete object
+app.delete("/patrolmen/:id", (request, response) => {
+  const patrolmenId = request.params.id;
+  const query = " DELETE FROM patrolmen WHERE id = ? ";
+
+  db.query(query, [patrolmenId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//update object
+app.put("/patrolmen/:id", (request, response) => {
+  const patrolmenId = request.params.id;
+  const query = "UPDATE patrolmen SET `id` = ?, `full_name` = ?, `age` = ?, `experience` = ? WHERE `id` = ?";
+
+  const values = [
+    request.body.full_name,
+    request.body.age,
+    request.body.experience,
+  ];
+
+  db.query(query, [patrolmenId, ...values, patrolmenId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//get patrols
+app.get("/patrols", (request, response) => {
+  const query = "SELECT * FROM patrols"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get patrol by id
+app.get("/patrols/:id", (request, response) => {
+  const patrolId = request.params.id;
+  const query = "SELECT * FROM patrols WHERE id = ? "
+  db.query(query, [patrolId], (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//add patrol
+app.post("/patrols", (request, response) => {
+  const query = "INSERT INTO patrols(`id`, `first_patrolman_id`, `second_patrolman_id`, `latitude`, `longitude`, `patrol_is_active`) VALUES (?)";
+
+  const values = [
+    request.body.id,
+    request.body.first_patrolman_id,
+    request.body.second_patrolman_id,
+    request.body.latitude,
+    request.body.longitude,
+    request.body.patrol_is_active,
+  ];
+
+  db.query(query, [values], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//delete patrol
+app.delete("/patrols/:id", (request, response) => {
+  const patrolId = request.params.id;
+  const query = " DELETE FROM patrols WHERE id = ? ";
+
+  db.query(query, [patrolId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//update object
+app.put("/patrols/:id", (request, response) => {
+  const patrolId = request.params.id;
+  const query = "UPDATE patrols SET `id` = ?, `first_patrolman_id` = ?, `second_patrolman_id` = ?, `latitude` = ?, `longitude` = ?, `patrol_is_active` = ? WHERE `id` = ?";
+
+  const values = [
+    request.body.first_patrolman_id,
+    request.body.second_patrolman_id,
+    request.body.latitude,
+    request.body.longitude,
+    request.body.patrol_is_active,
+  ];
+
+  db.query(query, [patrolId, ...values, patrolId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
 });
 
 app.listen(8800, () => {
