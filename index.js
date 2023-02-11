@@ -45,7 +45,7 @@ app.get("/objects/:id", (request, response) => {
 
 //add object
 app.post("/objects", (request, response) => {
-  const query = "INSERT INTO objects(`id`, `street`, `house`, `section`, `floor`, `apartment`,  `latitude`, `longitude`, `category`, `pets`, `client_id`) VALUES (?)";
+  const query = "INSERT INTO objects(`id`, `street`, `house`, `section`, `floor`, `apartment`,  `latitude`, `longitude`, `category`, `pets`, `client_id`, `object_is_active`) VALUES (?)";
 
   const values = [
     request.body.id,
@@ -59,6 +59,7 @@ app.post("/objects", (request, response) => {
     request.body.category,
     request.body.pets,
     request.body.client_id,
+    request.body.object_is_active,
   ];
 
   db.query(query, [values], (error, data) => {
@@ -81,7 +82,7 @@ app.delete("/objects/:id", (request, response) => {
 //update object
 app.put("/objects/:id", (request, response) => {
   const objectId = request.params.id;
-  const query = "UPDATE objects SET `id` = ?, `street` = ?, `house` = ?, `section` = ?, `floor` = ?, `apartment` = ?, `latitude` = ?, `longitude` = ?, `category` = ?, `pets` = ?, `client_id` = ? WHERE `id` = ?";
+  const query = "UPDATE objects SET `id` = ?, `street` = ?, `house` = ?, `section` = ?, `floor` = ?, `apartment` = ?, `latitude` = ?, `longitude` = ?, `category` = ?, `pets` = ?, `client_id` = ?, `object_is_active` = ? WHERE `id` = ?";
 
   const values = [
     request.body.street,
@@ -94,9 +95,49 @@ app.put("/objects/:id", (request, response) => {
     request.body.category,
     request.body.pets,
     request.body.client_id,
+    request.body.object_is_active,
   ];
 
   db.query(query, [objectId, ...values, objectId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//add client
+app.post("/clients", (request, response) => {
+  const query = "INSERT INTO clients(`id`, `surname`, `name`, `address`, `phone`, `alternate_phone`) VALUES (?)";
+
+  const values = [
+    request.body.id,
+    request.body.surname,
+    request.body.name,
+    request.body.address,
+    request.body.phone,
+    request.body.alternate_phone,
+  ];
+
+  db.query(query, [values], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//update client
+app.put("/clients/:id", (request, response) => {
+  const clientId = request.params.id;
+  const query = "UPDATE clients SET `id` = ?, `surname` = ?, `name` = ?, `address` = ?, `phone` = ?, `alternate_phone` = ? WHERE `id` = ?";
+
+  const values = [
+    request.body.surname,
+    request.body.name,
+    request.body.address,
+    request.body.phone,
+    request.body.alternate_phone,
+    
+  ];
+
+  db.query(query, [clientId, ...values, clientId], (error, data) => {
     if (error) return response.send(error);
     return response.json(data);
   });
@@ -125,6 +166,17 @@ app.get("/clients/:id", (request, response) => {
     }
     return response.json(data);
   })
+});
+
+//delete object
+app.delete("/clients/:id", (request, response) => {
+  const clientId = request.params.id;
+  const query = " DELETE FROM clients WHERE id = ? ";
+
+  db.query(query, [clientId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
 });
 
 //get patrolmen
@@ -169,7 +221,7 @@ app.post("/patrolmen", (request, response) => {
   });
 });
 
-//delete object
+//delete patrolmen
 app.delete("/patrolmen/:id", (request, response) => {
   const patrolmenId = request.params.id;
   const query = " DELETE FROM patrolmen WHERE id = ? ";
@@ -180,7 +232,7 @@ app.delete("/patrolmen/:id", (request, response) => {
   });
 });
 
-//update object
+//update patrolmen
 app.put("/patrolmen/:id", (request, response) => {
   const patrolmenId = request.params.id;
   const query = "UPDATE patrolmen SET `id` = ?, `full_name` = ?, `age` = ?, `experience` = ? WHERE `id` = ?";
@@ -252,7 +304,7 @@ app.delete("/patrols/:id", (request, response) => {
   });
 });
 
-//update object
+//update patrol
 app.put("/patrols/:id", (request, response) => {
   const patrolId = request.params.id;
   const query = "UPDATE patrols SET `id` = ?, `first_patrolman_id` = ?, `second_patrolman_id` = ?, `latitude` = ?, `longitude` = ?, `patrol_is_active` = ? WHERE `id` = ?";
