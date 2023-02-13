@@ -323,6 +323,42 @@ app.put("/patrols/:id", (request, response) => {
   });
 });
 
+//get incidents
+app.get("/incidents", (request, response) => {
+  const query = "SELECT * FROM incidents"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get opened incidents
+app.get("/opened-incidents", (request, response) => {
+  const query = "SELECT * FROM incidents where `is_closed` = '0'"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get unchecked incidents
+app.get("/unchecked-incidents", (request, response) => {
+  const query = "SELECT * FROM incidents where `is_checked` = '0'"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
 app.listen(8800, () => {
   console.log("Connected to backend")
 })
