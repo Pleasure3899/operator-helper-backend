@@ -337,7 +337,7 @@ app.get("/incidents", (request, response) => {
 
 //get incidents with join
 app.get("/incidents-join", (request, response) => {
-  const query = "SELECT incidents.id AS incidentid, incidents.is_checked AS incidentchecked, incidents.iterations AS incidentiterations, clients.id AS clientid, CONCAT(clients.surname, ' ', clients.name) AS clientname, clients.address AS clientaddress, clients.phone AS clientphone, clients.alternate_phone AS clientalternatephone,  objects.id as objectid, objects.latitude AS objectlatitude, objects.longitude AS objectlongitude, objects.street AS objectstreet, objects.house AS objecthouse, objects.section AS objectsection, objects.floor AS objectfloor, objects.apartment AS objectapartment, objects.category AS objectcategory, objects.pets as objectpets, timestamps.id AS timestampid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time FROM incidents, clients, timestamps, objects WHERE incidents.timestamp_id=timestamps.id and incidents.object_id=objects.id and objects.client_id=clients.id"
+  const query = "SELECT incidents.id AS incidentid, incidents.zones AS incidentzones, incidents.danger AS incidentdanger, incidents.is_checked AS incidentchecked, incidents.iterations AS incidentiterations, clients.id AS clientid, CONCAT(clients.surname, ' ', clients.name) AS clientname, clients.address AS clientaddress, clients.phone AS clientphone, clients.alternate_phone AS clientalternatephone,  objects.id as objectid, objects.latitude AS objectlatitude, objects.longitude AS objectlongitude, objects.street AS objectstreet, objects.house AS objecthouse, objects.section AS objectsection, objects.floor AS objectfloor, objects.apartment AS objectapartment, objects.category AS objectcategory, objects.pets as objectpets, timestamps.id AS timestampid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time FROM incidents, clients, timestamps, objects WHERE incidents.timestamp_id=timestamps.id and incidents.object_id=objects.id and objects.client_id=clients.id"
   db.query(query, (error, data) => {
     if (error) {
       console.log(error);
@@ -349,7 +349,7 @@ app.get("/incidents-join", (request, response) => {
 
 //get opened incidents with join
 app.get("/opened-incidents", (request, response) => {
-  const query = "SELECT incidents.id AS incidentid, incidents.is_checked AS incidentchecked, incidents.iterations AS incidentiterations, clients.id AS clientid, CONCAT(clients.surname, ' ', clients.name) AS clientname, clients.address AS clientaddress, clients.phone AS clientphone, clients.alternate_phone AS clientalternatephone,  objects.id as objectid, objects.latitude AS objectlatitude, objects.longitude AS objectlongitude, objects.street AS objectstreet, objects.house AS objecthouse, objects.section AS objectsection, objects.floor AS objectfloor, objects.apartment AS objectapartment, objects.category AS objectcategory, objects.pets as objectpets, timestamps.id AS timestampid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time FROM incidents, clients, timestamps, objects WHERE incidents.timestamp_id=timestamps.id and incidents.object_id=objects.id and objects.client_id=clients.id and incidents.is_closed=0"
+  const query = "SELECT incidents.id AS incidentid, incidents.zones AS incidentzones, incidents.danger AS incidentdanger, incidents.is_checked AS incidentchecked, incidents.iterations AS incidentiterations, clients.id AS clientid, CONCAT(clients.surname, ' ', clients.name) AS clientname, clients.address AS clientaddress, clients.phone AS clientphone, clients.alternate_phone AS clientalternatephone,  objects.id as objectid, objects.latitude AS objectlatitude, objects.longitude AS objectlongitude, objects.street AS objectstreet, objects.house AS objecthouse, objects.section AS objectsection, objects.floor AS objectfloor, objects.apartment AS objectapartment, objects.category AS objectcategory, objects.pets as objectpets, timestamps.id AS timestampid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time FROM incidents, clients, timestamps, objects WHERE incidents.timestamp_id=timestamps.id and incidents.object_id=objects.id and objects.client_id=clients.id and incidents.is_closed=0"
   db.query(query, (error, data) => {
     if (error) {
       console.log(error);
@@ -377,6 +377,21 @@ app.put("/check-incident/:id", (request, response) => {
   const query = "UPDATE incidents SET `is_checked` = 1 WHERE `id` = ?";
 
   db.query(query, [incidentId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//set danger for incident
+app.put("/incident-danger/:id", (request, response) => {
+  const incidentId = request.params.id;
+  const query = "UPDATE incidents SET `danger` = ? WHERE `id` = ?";
+
+  const values = [
+    request.body.danger,
+  ];
+
+  db.query(query, [...values, incidentId], (error, data) => {
     if (error) return response.send(error);
     return response.json(data);
   });
