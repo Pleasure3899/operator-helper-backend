@@ -261,6 +261,18 @@ app.get("/patrols", (request, response) => {
   })
 });
 
+//get patrols with patrolmen names
+app.get("/patrols-name", (request, response) => {
+  const query = "SELECT patrols.id as patrolid, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as patrollatitude, patrols.longitude as patrollongitude, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.second_patrolman_id) as secondpatrolmanname FROM patrols where patrol_is_active = 1"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
 //get patrol by id
 app.get("/patrols/:id", (request, response) => {
   const patrolId = request.params.id;
@@ -382,6 +394,19 @@ app.put("/check-incident/:id", (request, response) => {
   });
 });
 
+//get incident by id
+app.get("/incidents/:id", (request, response) => {
+  const incidentId = request.params.id;
+  const query = "SELECT incidents.id AS incidentid, incidents.zones AS incidentzones, incidents.danger AS incidentdanger, incidents.is_checked AS incidentchecked, incidents.iterations AS incidentiterations, clients.id AS clientid, CONCAT(clients.surname, ' ', clients.name) AS clientname, clients.address AS clientaddress, clients.phone AS clientphone, clients.alternate_phone AS clientalternatephone,  objects.id as objectid, objects.latitude AS objectlatitude, objects.longitude AS objectlongitude, objects.street AS objectstreet, objects.house AS objecthouse, objects.section AS objectsection, objects.floor AS objectfloor, objects.apartment AS objectapartment, objects.category AS objectcategory, objects.pets as objectpets, timestamps.id AS timestampid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time FROM incidents, clients, timestamps, objects WHERE incidents.timestamp_id=timestamps.id and incidents.object_id=objects.id and objects.client_id=clients.id and incidents.id = ? "
+  db.query(query, [incidentId], (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
 //set danger for incident
 app.put("/incident-danger/:id", (request, response) => {
   const incidentId = request.params.id;
@@ -397,11 +422,35 @@ app.put("/incident-danger/:id", (request, response) => {
   });
 });
 
+//set is_checked switch = 1 for incident
+app.put("/incident-ischeck/:id", (request, response) => {
+  const incidentId = request.params.id;
+  const query = "UPDATE incidents SET `is_checked` = 1 WHERE `id` = ?";
+
+  db.query(query, [incidentId], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
 //get client by id
 app.get("/clients/:id", (request, response) => {
   const clientId = request.params.id;
   const query = "SELECT * FROM clients WHERE id = ? "
   db.query(query, [clientId], (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get last operation of the incident by id
+app.get("/last-operation/:id", (request, response) => {
+  const incidentId = request.params.id;
+  const query = "SELECT operations.id as operationid, operations.incident_id as incidentid, operations.patrol_id as patrolid, operations.status_id as statusid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time, statuses.title as statustitle, statuses.description as statusdescription, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as patrollatitude, patrols.longitude as patrollongitude, (SELECT patrolmen.full_name from patrolmen where id=patrols.first_patrolman_id) as fristpatrolmanname, (SELECT patrolmen.full_name from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanname, (SELECT patrolmen.age from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanage, (SELECT patrolmen.age from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanage, (SELECT patrolmen.experience from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanexp, (SELECT patrolmen.experience from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanexp FROM operations, timestamps, statuses, patrols, patrolmen WHERE operations.incident_id = ? and operations.timestamp_id=timestamps.id and operations.status_id = statuses.id and operations.patrol_id = patrols.id ORDER BY operations.id DESC LIMIT 1"
+  db.query(query, [incidentId], (error, data) => {
     if (error) {
       console.log(error);
       return response.json(error);
