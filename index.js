@@ -263,7 +263,7 @@ app.get("/patrols", (request, response) => {
 
 //get patrols with patrolmen names
 app.get("/patrols-name", (request, response) => {
-  const query = "SELECT patrols.id as patrolid, patrols.probability as patrolprobability, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as patrollatitude, patrols.longitude as patrollongitude, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.second_patrolman_id) as secondpatrolmanname FROM patrols where patrol_is_active = 1"
+  const query = "SELECT patrols.id, patrols.probability as patrolprobability, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as latitude, patrols.longitude as longitude, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.second_patrolman_id) as secondpatrolmanname FROM patrols where patrol_is_active = 1"
   db.query(query, (error, data) => {
     if (error) {
       console.log(error);
@@ -288,7 +288,7 @@ app.get("/patrols/:id", (request, response) => {
 
 //add patrol
 app.post("/patrols", (request, response) => {
-  const query = "INSERT INTO patrols(`id`, `first_patrolman_id`, `second_patrolman_id`, `latitude`, `longitude`, `patrol_is_active`) VALUES (?)";
+  const query = "INSERT INTO patrols(`id`, `first_patrolman_id`, `second_patrolman_id`, `latitude`, `longitude`, `patrol_is_active`, `probability`) VALUES (?)";
 
   const values = [
     request.body.id,
@@ -297,6 +297,7 @@ app.post("/patrols", (request, response) => {
     request.body.latitude,
     request.body.longitude,
     request.body.patrol_is_active,
+    request.body.probability,
   ];
 
   db.query(query, [values], (error, data) => {
@@ -319,7 +320,7 @@ app.delete("/patrols/:id", (request, response) => {
 //update patrol
 app.put("/patrols/:id", (request, response) => {
   const patrolId = request.params.id;
-  const query = "UPDATE patrols SET `id` = ?, `first_patrolman_id` = ?, `second_patrolman_id` = ?, `latitude` = ?, `longitude` = ?, `patrol_is_active` = ? WHERE `id` = ?";
+  const query = "UPDATE patrols SET `id` = ?, `first_patrolman_id` = ?, `second_patrolman_id` = ?, `latitude` = ?, `longitude` = ?, `patrol_is_active` = ?, `probability` = ? WHERE `id` = ?";
 
   const values = [
     request.body.first_patrolman_id,
@@ -327,6 +328,7 @@ app.put("/patrols/:id", (request, response) => {
     request.body.latitude,
     request.body.longitude,
     request.body.patrol_is_active,
+    request.body.probability,
   ];
 
   db.query(query, [patrolId, ...values, patrolId], (error, data) => {
@@ -471,6 +473,94 @@ app.get("/statuses", (request, response) => {
   })
 });
 
+
+//add operation
+app.post("/operations", (request, response) => {
+  const query = "INSERT INTO operations(`id`, `incident_id`, `patrol_id`, `status_id`, `timestamp_id`) VALUES (?)";
+
+  const values = [
+    request.body.id,
+    request.body.incident_id,
+    request.body.patrol_id,
+    request.body.status_id,
+    request.body.timestamp_id,
+  ];
+
+  db.query(query, [values], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+
+  if (request.body.status_id === 50) {
+    db.query("UPDATE incidents SET `is_closed` = 1 WHERE `id` = ?", request.body.incident_id);
+  } else {
+    db.query("UPDATE incidents SET `is_closed` = 0 WHERE `id` = ?", request.body.incident_id);
+  }
+
+});
+
+//get operations
+app.get("/operations", (request, response) => {
+  const query = "SELECT * FROM operations"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get last operation id
+app.get("/operations-lastid", (request, response) => {
+  const query = "SELECT MAX(id) as id FROM operations"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+
+//add timestamp
+app.post("/timestamps", (request, response) => {
+  const query = "INSERT INTO timestamps(`id`) VALUES (?)";
+
+  const values = [
+    request.body.id,
+  ];
+
+  db.query(query, [values], (error, data) => {
+    if (error) return response.send(error);
+    return response.json(data);
+  });
+});
+
+//get timestamps
+app.get("/timestamps", (request, response) => {
+  const query = "SELECT * FROM timestamps"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
+
+//get last timestamp id value
+app.get("/timestamps-lastid", (request, response) => {
+  const query = "SELECT MAX(id) as id FROM timestamps"
+  db.query(query, (error, data) => {
+    if (error) {
+      console.log(error);
+      return response.json(error);
+    }
+    return response.json(data);
+  })
+});
 
 app.listen(8800, () => {
   console.log("Connected to backend")
