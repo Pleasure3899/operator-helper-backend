@@ -263,7 +263,7 @@ app.get("/patrols", (request, response) => {
 
 //get patrols with patrolmen names
 app.get("/patrols-name", (request, response) => {
-  const query = "SELECT patrols.id, patrols.probability as patrolprobability, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as latitude, patrols.longitude as longitude, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.second_patrolman_id) as secondpatrolmanname FROM patrols where patrol_is_active = 1"
+  const query = "SELECT patrols.id, patrols.probability_superlow as patrolprobabilitysuperlow, patrols.probability_low as patrolprobabilitylow, patrols.probability_medium as patrolprobabilitymedium, patrols.probability_high as patrolprobabilityhigh, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as latitude, patrols.longitude as longitude, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where patrolmen.id = patrols.second_patrolman_id) as secondpatrolmanname FROM patrols where patrol_is_active = 1"
   db.query(query, (error, data) => {
     if (error) {
       console.log(error);
@@ -288,7 +288,7 @@ app.get("/patrols/:id", (request, response) => {
 
 //add patrol
 app.post("/patrols", (request, response) => {
-  const query = "INSERT INTO patrols(`id`, `first_patrolman_id`, `second_patrolman_id`, `latitude`, `longitude`, `patrol_is_active`, `probability`) VALUES (?)";
+  const query = "INSERT INTO patrols(`id`, `first_patrolman_id`, `second_patrolman_id`, `latitude`, `longitude`, `patrol_is_active`, `probability_superlow` , `probability_low`, `probability_medium`, `probability_high`) VALUES (?)";
 
   const values = [
     request.body.id,
@@ -297,7 +297,10 @@ app.post("/patrols", (request, response) => {
     request.body.latitude,
     request.body.longitude,
     request.body.patrol_is_active,
-    request.body.probability,
+    request.body.probabilitysuperlow,
+    request.body.probabilitylow,
+    request.body.probabilitymedium,
+    request.body.probabilityhigh,
   ];
 
   db.query(query, [values], (error, data) => {
@@ -320,7 +323,7 @@ app.delete("/patrols/:id", (request, response) => {
 //update patrol
 app.put("/patrols/:id", (request, response) => {
   const patrolId = request.params.id;
-  const query = "UPDATE patrols SET `id` = ?, `first_patrolman_id` = ?, `second_patrolman_id` = ?, `latitude` = ?, `longitude` = ?, `patrol_is_active` = ?, `probability` = ? WHERE `id` = ?";
+  const query = "UPDATE patrols SET `id` = ?, `first_patrolman_id` = ?, `second_patrolman_id` = ?, `latitude` = ?, `longitude` = ?, `patrol_is_active` = ?, `probability_superlow` = ? , `probability_low` = ?, `probability_medium` = ?, `probability_high` = ? WHERE `id` = ?";
 
   const values = [
     request.body.first_patrolman_id,
@@ -328,7 +331,10 @@ app.put("/patrols/:id", (request, response) => {
     request.body.latitude,
     request.body.longitude,
     request.body.patrol_is_active,
-    request.body.probability,
+    request.body.probability_superlow,
+    request.body.probability_low,
+    request.body.probability_medium,
+    request.body.probability_high,
   ];
 
   db.query(query, [patrolId, ...values, patrolId], (error, data) => {
