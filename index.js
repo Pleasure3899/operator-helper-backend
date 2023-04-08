@@ -181,7 +181,7 @@ app.delete("/clients/:id", (request, response) => {
 
 //get patrolmen
 app.get("/patrolmen", (request, response) => {
-  const query = "SELECT * FROM patrolmen"
+  const query = "SELECT id, full_name, DATE_FORMAT(age,'%d/%m/%Y') AS age, DATE_FORMAT(experience,'%d/%m/%Y') AS experience FROM patrolmen"
   db.query(query, (error, data) => {
     if (error) {
       console.log(error);
@@ -194,7 +194,7 @@ app.get("/patrolmen", (request, response) => {
 //get patrolman by id
 app.get("/patrolmen/:id", (request, response) => {
   const patrolmenId = request.params.id;
-  const query = "SELECT * FROM patrolmen WHERE id = ? "
+  const query = "SELECT id, full_name, DATE_FORMAT(age,'%Y-%m-%d') AS age, DATE_FORMAT(experience,'%Y-%m-%d') AS experience FROM patrolmen WHERE id = ? "
   db.query(query, [patrolmenId], (error, data) => {
     if (error) {
       console.log(error);
@@ -457,7 +457,7 @@ app.get("/clients/:id", (request, response) => {
 //get last operation of the incident by id
 app.get("/last-operation/:id", (request, response) => {
   const incidentId = request.params.id;
-  const query = "SELECT operations.id as operationid, operations.incident_id as incidentid, operations.patrol_id as patrolid, operations.status_id as statusid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time, statuses.title as statustitle, statuses.description as statusdescription, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as patrollatitude, patrols.longitude as patrollongitude, (SELECT patrolmen.full_name from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanname, (SELECT patrolmen.age from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanage, (SELECT patrolmen.age from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanage, (SELECT patrolmen.experience from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanexp, (SELECT patrolmen.experience from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanexp FROM operations, timestamps, statuses, patrols, patrolmen WHERE operations.incident_id = ? and operations.timestamp_id=timestamps.id and operations.status_id = statuses.id and operations.patrol_id = patrols.id ORDER BY operations.id DESC LIMIT 1"
+  const query = "SELECT operations.id as operationid, operations.incident_id as incidentid, operations.patrol_id as patrolid, operations.status_id as statusid, DATE_FORMAT(timestamps.date, '%d.%m.%Y') AS date, timestamps.time AS time, statuses.title as statustitle, statuses.description as statusdescription, patrols.first_patrolman_id as firstpatrolmanid, patrols.second_patrolman_id as secondpatrolmanid, patrols.latitude as patrollatitude, patrols.longitude as patrollongitude, (SELECT patrolmen.full_name from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanname, (SELECT patrolmen.full_name from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanname, (SELECT DATE_FORMAT(patrolmen.age,'%d/%m/%Y') from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanage, (SELECT DATE_FORMAT(patrolmen.age,'%d/%m/%Y') from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanage, (SELECT DATE_FORMAT(patrolmen.experience,'%d/%m/%Y') from patrolmen where id=patrols.first_patrolman_id) as firstpatrolmanexp, (SELECT DATE_FORMAT(patrolmen.experience,'%d/%m/%Y') from patrolmen where id=patrols.second_patrolman_id) as secondpatrolmanexp FROM operations, timestamps, statuses, patrols, patrolmen WHERE operations.incident_id = ? and operations.timestamp_id=timestamps.id and operations.status_id = statuses.id and operations.patrol_id = patrols.id ORDER BY operations.id DESC LIMIT 1"
   db.query(query, [incidentId], (error, data) => {
     if (error) {
       console.log(error);
@@ -499,8 +499,10 @@ app.post("/operations", (request, response) => {
 
   if (request.body.status_id === 50) {
     db.query("UPDATE incidents SET `is_closed` = 1 WHERE `id` = ?", request.body.incident_id);
+    //db.query("UPDATE patrols SET `patrol_is_active` = 1 WHERE `id` = ?", request.body.patrol_id);
   } else {
     db.query("UPDATE incidents SET `is_closed` = 0 WHERE `id` = ?", request.body.incident_id);
+    //db.query("UPDATE patrols SET `patrol_is_active` = 0 WHERE `id` = ?", request.body.patrol_id);
   }
 
 });
